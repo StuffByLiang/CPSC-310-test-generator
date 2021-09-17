@@ -5,6 +5,7 @@ import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-json";
 import "ace-builds/src-noconflict/theme-github";
+import { downloadFile } from "./utils/downloadFile";
 
 const API_URL = "https://cs310.students.cs.ubc.ca/ui/query";
 const DEFAULT_VALUE = JSON.stringify(JSON.parse(`{"WHERE":{"OR":[{"AND":[{"GT":{"courses_avg":90}},{"IS":{"courses_dept":"adhe"}}]},{"EQ":{"courses_avg":95}}]},"OPTIONS":{"COLUMNS":["courses_dept","courses_id","courses_avg"],"ORDER":"courses_avg"}}`), null, '\t')
@@ -17,28 +18,46 @@ function App() {
 
   const fetchData = async () => {
     let response = "";
+    let query = "";
+    try {
+      query = JSON.parse(value);
+    } catch (e) {
+      setError(true);
+      const newLocal = "Invalid JSON provided\n\n" + (e as any).message;
+      setResult(newLocal);
+      return "";
+    }
 
     try {
-      const result = (await axios.post(API_URL, JSON.parse(value))).data.result;
+      const result = (await axios.post(API_URL, query)).data.result;
       const file = {
         title,
-        input: JSON.parse(value),
+        input: query,
         errorExpected: false,
         with: result
       }
       response = JSON.stringify(file, null, 2);
-      console.log(response)
       setError(false);
     } catch (error) {
-      console.log(error);
-      response = (error as any).message;
-      if ((error as any)?.response?.data) {
-        response += "\n\n" + JSON.stringify((error as any).response.data);
+      let errorMsg = "";
+      if ((error as any)?.response?.data?.error) {
+        errorMsg = (error as any).response.data.error;
       }
+
+      const file = {
+        errorMsg,
+        title,
+        input: JSON.parse(value),
+        errorExpected: true,
+        with: "InsightError"
+      }
+
+      response = JSON.stringify(file, null, 2);
       setError(true);
     } finally {
       setResult(response);
     }
+    return response;
   }
 
   return (
@@ -64,8 +83,16 @@ function App() {
               }}
             />
             <Box my={2} display="flex" justifyContent="flex-end">
-              <Button variant="contained" onClick={() => fetchData()}>
-                Submit
+              <Box mr={1}>
+                <Button variant="contained" onClick={() => fetchData()}>
+                  Submit
+                </Button>
+              </Box>
+              <Button variant="contained" onClick={async() => {
+                const response = await fetchData()
+                downloadFile(response, title);
+              }}>
+                Download File
               </Button>
             </Box>
           </Grid>
