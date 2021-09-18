@@ -14,6 +14,11 @@ import "ace-builds/src-noconflict/mode-json";
 import "ace-builds/src-noconflict/theme-github";
 import { downloadFile } from "./utils/downloadFile";
 
+// GOOGLE ANALYTICS
+import ReactGA from "react-ga";
+ReactGA.initialize("G-6G6T9722ZT");
+ReactGA.pageview(window.location.pathname + window.location.search);
+
 const API_URL = "https://cs310.students.cs.ubc.ca/ui/query";
 const DEFAULT_VALUE = JSON.stringify(
   JSON.parse(
@@ -58,8 +63,6 @@ function App() {
       if ((error as any)?.response?.data?.error) {
         errorMsg = (error as any).response.data.error;
       }
-
-      console.log(errorMsg);
 
       const file = {
         errorMsg,
