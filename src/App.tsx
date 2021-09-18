@@ -15,9 +15,9 @@ import "ace-builds/src-noconflict/theme-github";
 import { downloadFile } from "./utils/downloadFile";
 
 // GOOGLE ANALYTICS
-import ReactGA from "react-ga";
+import ReactGA from "react-ga4";
 ReactGA.initialize("G-6G6T9722ZT");
-ReactGA.pageview(window.location.pathname + window.location.search);
+ReactGA.send("pageview");
 
 const API_URL = "https://cs310.students.cs.ubc.ca/ui/query";
 const DEFAULT_VALUE = JSON.stringify(
